@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui' as UI;
 
 import 'package:floating_bubbles/floating_bubbles.dart';
 import 'package:flutter/material.dart';
@@ -137,6 +138,8 @@ class BubbleModel extends CustomPainter {
   /// Shape of the Bubble.
   final BubbleShape shape;
 
+  final UI.Image? image;
+
   /// This Class paints the bubble in the screen.
   ///
   /// All Fields are Required.
@@ -147,6 +150,7 @@ class BubbleModel extends CustomPainter {
     required this.paintingStyle,
     required this.strokeWidth,
     required this.shape,
+    this.image,
   });
 
   /// Painting the bubbles in the screen.
@@ -163,6 +167,7 @@ class BubbleModel extends CustomPainter {
         animation.get<double>(_OffsetProps.x) * size.width,
         animation.get<double>(_OffsetProps.y) * size.height,
       );
+
       if (shape == BubbleShape.circle)
         canvas.drawCircle(
           position,
@@ -176,6 +181,16 @@ class BubbleModel extends CustomPainter {
               radius: size.width * sizeFactor * particle.size,
             ),
             paint);
+      else if (shape == BubbleShape.image)
+        // get image from assets named bubble.png
+        canvas.drawImage(
+          image!,
+          Offset(
+            position.dx - size.width * sizeFactor * particle.size / 2,
+            position.dy - size.height * sizeFactor * particle.size / 2,
+          ),
+          paint,
+        );
       else {
         Rect rect() => Rect.fromCircle(
               center: position,

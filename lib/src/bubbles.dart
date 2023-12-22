@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui' as UI;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sa4_migration_kit/sa4_migration_kit.dart';
 
 import 'bubble_floating_animation.dart';
 
 ///Enum for Setting the Shape of the bubble
-enum BubbleShape { circle, square, roundedRectangle }
+enum BubbleShape { circle, square, roundedRectangle, image }
 
 ///Enum for Setting the speed at which the bubbles go through screen
 enum BubbleSpeed { fast, normal, slow }
@@ -50,6 +52,8 @@ class FloatingBubbles extends StatefulWidget {
   /// controls the speed at which bubbles appear/disappear
   final BubbleSpeed speed;
 
+  final String? imagePath;
+
   /// Creates Floating Bubbles in the Foreground to Any widgets that plays for [duration] amount of time.
   ///
   /// All Fields Are Required to make a new [Instance] of FloatingBubbles.
@@ -65,6 +69,7 @@ class FloatingBubbles extends StatefulWidget {
     this.paintingStyle = PaintingStyle.fill,
     this.strokeWidth = 0,
     this.speed = BubbleSpeed.normal,
+    this.imagePath,
   })  : assert(
           noOfBubbles >= 10,
           'Number of Bubbles Cannot be less than 10',
@@ -96,6 +101,7 @@ class FloatingBubbles extends StatefulWidget {
     this.strokeWidth = 0,
     this.duration = 0,
     this.speed = BubbleSpeed.normal,
+    this.imagePath,
   })  : assert(
           noOfBubbles >= 10,
           'Number of Bubbles Cannot be less than 10',
@@ -124,8 +130,12 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
   /// initialises a empty list of bubbles.
   final List<BubbleFloatingAnimation> bubbles = [];
 
+  UI.Image? _image;
+
   @override
   void initState() {
+    super.initState();
+
     final _random = new Random();
     for (int i = 0; i < widget.noOfBubbles; i++) {
       bubbles.add(
@@ -137,7 +147,7 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
         ),
       );
     }
-    if (widget.duration != null && widget.duration != 0)
+    if (widget.duration != null && widget.duration != 0) {
       Timer(Duration(seconds: widget.duration!), () {
         if (mounted) {
           setState(() {
@@ -145,7 +155,8 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
           });
         }
       });
-    super.initState();
+    }
+    loadImage(widget.imagePath!);
   }
 
   /// Function to paint the bubbles to the screen.
@@ -174,6 +185,7 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
                   paintingStyle: widget.paintingStyle,
                   strokeWidth: widget.strokeWidth,
                   shape: widget.shape,
+                  image: _image,
                 ),
               );
             },
@@ -188,18 +200,31 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
               if (checkToStopAnimation == 0)
                 return drawBubbles(
                   bubbles: BubbleModel(
-                    bubbles: bubbles,
-                    sizeFactor: widget.sizeFactor,
-                    opacity: widget.opacity,
-                    paintingStyle: widget.paintingStyle,
-                    strokeWidth: widget.strokeWidth,
-                    shape: widget.shape,
-                  ),
+                      bubbles: bubbles,
+                      sizeFactor: widget.sizeFactor,
+                      opacity: widget.opacity,
+                      paintingStyle: widget.paintingStyle,
+                      strokeWidth: widget.strokeWidth,
+                      shape: widget.shape,
+                      image: _image),
                 );
               else
                 return Container(); // will display a empty container after playing the animations.
             },
           );
+  }
+
+  Future<void> loadImage(String path) async {
+    print("loadImage: " + path);
+
+    ByteData data = await rootBundle.load(path);
+    Uint8List bytes = data.buffer.asUint8List();
+    UI.Codec codec = await UI.instantiateImageCodec(bytes);
+    UI.FrameInfo frameInfo = await codec.getNextFrame();
+    setState(() {
+      print("loadImage: setImageState");
+      _image = frameInfo.image;
+    });
   }
 
   /// This Function checks whether the bubbles in the screen have to be restarted due to

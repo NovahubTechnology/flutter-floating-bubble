@@ -48,10 +48,11 @@ class HomePage extends StatelessWidget {
               Colors.red,
             ],
             sizeFactor: 0.2,
-            opacity: 70,
+            opacity: 90,
             speed: BubbleSpeed.slow,
             paintingStyle: PaintingStyle.fill,
-            shape: BubbleShape.circle, //This is the default
+            shape: BubbleShape.image,
+            imagePath: 'assets/ic_heart.png',
           ),
         ),
       ],
