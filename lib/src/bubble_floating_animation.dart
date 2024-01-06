@@ -1,16 +1,15 @@
 import 'dart:math';
-import 'dart:ui' as UI;
 
 import 'package:floating_bubbles/floating_bubbles.dart';
 import 'package:flutter/material.dart';
 import 'package:sa4_migration_kit/sa4_migration_kit.dart';
 
-enum _OffsetProps { x, y }
+enum OffsetProps { x, y }
 
 /// This class Creates the animation of the bubbles flowing from bottom to top in the screen.
 class BubbleFloatingAnimation {
   /// Creates a tween between x and y coordinates.
-  late MultiTween<_OffsetProps> tween;
+  late MultiTween<OffsetProps> tween;
 
   /// Size of the bubble
   late double size;
@@ -47,16 +46,16 @@ class BubbleFloatingAnimation {
       -0.2,
     );
 
-    tween = MultiTween<_OffsetProps>()
+    tween = MultiTween<OffsetProps>()
       ..add(
-        _OffsetProps.x,
+        OffsetProps.x,
         Tween(
           begin: startPosition.dx,
           end: endPosition.dx,
         ),
       )
       ..add(
-        _OffsetProps.y,
+        OffsetProps.y,
         Tween(
           begin: startPosition.dy,
           end: endPosition.dy,
@@ -67,16 +66,16 @@ class BubbleFloatingAnimation {
           milliseconds: speed == BubbleSpeed.fast
               ? 1500
               : speed == BubbleSpeed.normal
-                  ? 3000
-                  : 6000,
+                  ? 4500
+                  : 9000,
         ) +
         Duration(
           milliseconds: random.nextInt(
             speed == BubbleSpeed.fast
                 ? 3000
                 : speed == BubbleSpeed.normal
-                    ? 6000
-                    : 12000,
+                    ? 9000
+                    : 18000,
           ),
         );
 
@@ -115,97 +114,4 @@ class BubbleFloatingAnimation {
         .clamp(0.0, 1.0)
         .toDouble();
   }
-}
-
-/// This Class paints the bubble in the screen.
-class BubbleModel extends CustomPainter {
-  /// List of all bubbles in the screen at a given time.
-  final List<BubbleFloatingAnimation> bubbles;
-
-  /// Size factor of the bubble.
-  final double sizeFactor;
-
-  /// Opacity of the bubbles.
-  final int opacity;
-
-  ///Painting Style of the bubbles.
-  final PaintingStyle paintingStyle;
-
-  /// Stroke Width of the bubbles. This value is effective only if [Painting Style]
-  /// is set to [PaintingStyle.stroke].
-  final double strokeWidth;
-
-  /// Shape of the Bubble.
-  final BubbleShape shape;
-
-  final UI.Image? image;
-
-  /// This Class paints the bubble in the screen.
-  ///
-  /// All Fields are Required.
-  BubbleModel({
-    required this.bubbles,
-    required this.sizeFactor,
-    required this.opacity,
-    required this.paintingStyle,
-    required this.strokeWidth,
-    required this.shape,
-    this.image,
-  });
-
-  /// Painting the bubbles in the screen.
-  @override
-  void paint(Canvas canvas, Size size) {
-    bubbles.forEach((particle) {
-      final paint = Paint()
-        ..color = particle.color.withAlpha(opacity)
-        ..style = paintingStyle
-        ..strokeWidth = strokeWidth; //can be from 5 to 15.
-      final progress = particle.progress();
-      final MultiTweenValues animation = particle.tween.transform(progress);
-      final position = Offset(
-        animation.get<double>(_OffsetProps.x) * size.width,
-        animation.get<double>(_OffsetProps.y) * size.height,
-      );
-
-      if (shape == BubbleShape.circle)
-        canvas.drawCircle(
-          position,
-          size.width * sizeFactor * particle.size,
-          paint,
-        );
-      else if (shape == BubbleShape.square)
-        canvas.drawRect(
-            Rect.fromCircle(
-              center: position,
-              radius: size.width * sizeFactor * particle.size,
-            ),
-            paint);
-      else if (shape == BubbleShape.image)
-        // get image from assets named bubble.png
-        canvas.drawImage(
-          image!,
-          Offset(
-            position.dx - size.width * sizeFactor * particle.size / 2,
-            position.dy - size.height * sizeFactor * particle.size / 2,
-          ),
-          paint,
-        );
-      else {
-        Rect rect() => Rect.fromCircle(
-              center: position,
-              radius: size.width * sizeFactor * particle.size,
-            );
-        canvas.drawRRect(
-            RRect.fromRectAndRadius(
-              rect(),
-              Radius.circular(size.width * sizeFactor * particle.size * 0.5),
-            ),
-            paint);
-      }
-    });
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }

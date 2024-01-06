@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as UI;
 
+import 'package:floating_bubbles/src/bubble_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sa4_migration_kit/sa4_migration_kit.dart';
@@ -136,6 +137,8 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
   void initState() {
     super.initState();
 
+    loadImage(widget.imagePath!);
+
     final _random = new Random();
     for (int i = 0; i < widget.noOfBubbles; i++) {
       bubbles.add(
@@ -156,7 +159,6 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
         }
       });
     }
-    loadImage(widget.imagePath!);
   }
 
   /// Function to paint the bubbles to the screen.
@@ -178,7 +180,7 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
             builder: (context, child, value) {
               _simulateBubbles();
               return drawBubbles(
-                bubbles: BubbleModel(
+                bubbles: BubblePainter(
                   bubbles: bubbles,
                   sizeFactor: widget.sizeFactor,
                   opacity: widget.opacity,
@@ -199,7 +201,7 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
               _simulateBubbles();
               if (checkToStopAnimation == 0)
                 return drawBubbles(
-                  bubbles: BubbleModel(
+                  bubbles: BubblePainter(
                       bubbles: bubbles,
                       sizeFactor: widget.sizeFactor,
                       opacity: widget.opacity,
@@ -214,6 +216,36 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
           );
   }
 
+  Future<UI.Image> scaleImage(
+      UI.Image image, int scaledWidth, int scaledHeight) async {
+    var recorder = UI.PictureRecorder();
+    var imageCanvas = new Canvas(recorder);
+    // var painter = _MarkupPainter(_overlays);
+
+    //Paint the image into a rectangle that matches the requested width/height.
+    //This will handle rescaling the image into the rectangle so that it will not be clipped.
+    paintImage(
+        canvas: imageCanvas,
+        rect: Rect.fromLTWH(
+            0, 0, scaledWidth.toDouble(), scaledHeight.toDouble()),
+        image: image,
+        fit: BoxFit.scaleDown,
+        repeat: ImageRepeat.noRepeat,
+        scale: 1.0,
+        alignment: Alignment.center,
+        flipHorizontally: false,
+        filterQuality: FilterQuality.high);
+
+    //Add the markup overlays.
+    // painter.paint(imageCanvas, Size(scaledWidth, scaledHeight));
+
+    var picture = recorder.endRecording();
+
+    var scaledImage = picture.toImage(scaledWidth, scaledHeight);
+
+    return scaledImage;
+  }
+
   Future<void> loadImage(String path) async {
     print("loadImage: " + path);
 
@@ -221,9 +253,12 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
     Uint8List bytes = data.buffer.asUint8List();
     UI.Codec codec = await UI.instantiateImageCodec(bytes);
     UI.FrameInfo frameInfo = await codec.getNextFrame();
+
+    var scaledImage = await scaleImage(frameInfo.image, 30, 30);
+
     setState(() {
       print("loadImage: setImageState");
-      _image = frameInfo.image;
+      _image = scaledImage;
     });
   }
 
