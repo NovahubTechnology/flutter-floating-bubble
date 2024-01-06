@@ -37,20 +37,20 @@ class HomePage extends StatelessWidget {
       children: [
         Positioned.fill(
           child: Container(
-            color: Colors.blue,
-          ),
+              // color: Colors.blue,
+              ),
         ),
         Positioned.fill(
           child: FloatingBubbles.alwaysRepeating(
-            noOfBubbles: 50,
+            noOfBubbles: 20,
             colorsOfBubbles: const [
               Colors.white,
               Colors.red,
             ],
-            sizeFactor: 0.2,
-            opacity: 90,
+            sizeFactor: 0.3,
+            opacity: 200,
             speed: BubbleSpeed.slow,
-            paintingStyle: PaintingStyle.fill,
+            paintingStyle: PaintingStyle.stroke,
             shape: BubbleShape.image,
             imagePath: 'assets/ic_heart.png',
           ),
