@@ -225,18 +225,14 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
       ByteData data = await rootBundle.load(path);
       Uint8List bytes = data.buffer.asUint8List();
 
-      // Load at 128x128 for optimal quality at 30x30 rendering size
-      // This provides 4x oversampling for crisp, anti-aliased rendering
-      UI.Codec codec = await UI.instantiateImageCodec(
-        bytes,
-        targetWidth: 128,
-        targetHeight: 128,
-      );
+      // Load image at its original dimensions
+      UI.Codec codec = await UI.instantiateImageCodec(bytes);
       UI.FrameInfo frameInfo = await codec.getNextFrame();
 
       if (mounted) {
         setState(() {
-          print("loadImage: setImageState at ${frameInfo.image.width}x${frameInfo.image.height}");
+          print(
+              "loadImage: setImageState at ${frameInfo.image.width}x${frameInfo.image.height}");
           _image = frameInfo.image;
         });
       }
