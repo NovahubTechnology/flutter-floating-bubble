@@ -68,7 +68,8 @@ class BubblePainter extends CustomPainter {
       else if (shape == BubbleShape.image) {
         if (image == null) return;
 
-        final imageSize = size.width * sizeFactor * particle.size;
+        // Fixed size: all hearts render at exactly 30x30 pixels
+        const imageSize = 30.0;
         final sourceRect = Rect.fromLTWH(
             0, 0, image!.width.toDouble(), image!.height.toDouble());
         final destRect = Rect.fromLTWH(
@@ -78,7 +79,24 @@ class BubblePainter extends CustomPainter {
           imageSize,
         );
 
-        canvas.drawImageRect(image!, sourceRect, destRect, paint);
+        // Save layer for better compositing
+        canvas.save();
+
+        // Use high-quality paint settings for better image rendering
+        final imagePaint = Paint()
+          ..filterQuality = FilterQuality.high
+          ..isAntiAlias = true;
+
+        // Apply opacity if needed
+        if (opacity < 255) {
+          imagePaint.colorFilter = ColorFilter.mode(
+            Colors.white.withAlpha(opacity),
+            BlendMode.modulate,
+          );
+        }
+
+        canvas.drawImageRect(image!, sourceRect, destRect, imagePaint);
+        canvas.restore();
       } else {
         Rect rect() => Rect.fromCircle(
             center: position, radius: size.width * sizeFactor * particle.size);
