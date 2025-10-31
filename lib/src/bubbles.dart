@@ -137,7 +137,9 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
   void initState() {
     super.initState();
 
-    loadImage(widget.imagePath!);
+    if (widget.imagePath != null) {
+      loadImage(widget.imagePath!);
+    }
 
     final _random = new Random();
     for (int i = 0; i < widget.noOfBubbles; i++) {
@@ -216,50 +218,27 @@ class _FloatingBubblesState extends State<FloatingBubbles> {
           );
   }
 
-  Future<UI.Image> scaleImage(
-      UI.Image image, int scaledWidth, int scaledHeight) async {
-    var recorder = UI.PictureRecorder();
-    var imageCanvas = new Canvas(recorder);
-    // var painter = _MarkupPainter(_overlays);
-
-    //Paint the image into a rectangle that matches the requested width/height.
-    //This will handle rescaling the image into the rectangle so that it will not be clipped.
-    paintImage(
-        canvas: imageCanvas,
-        rect: Rect.fromLTWH(
-            0, 0, scaledWidth.toDouble(), scaledHeight.toDouble()),
-        image: image,
-        fit: BoxFit.scaleDown,
-        repeat: ImageRepeat.noRepeat,
-        scale: 1.0,
-        alignment: Alignment.center,
-        flipHorizontally: false,
-        filterQuality: FilterQuality.high);
-
-    //Add the markup overlays.
-    // painter.paint(imageCanvas, Size(scaledWidth, scaledHeight));
-
-    var picture = recorder.endRecording();
-
-    var scaledImage = picture.toImage(scaledWidth, scaledHeight);
-
-    return scaledImage;
-  }
-
   Future<void> loadImage(String path) async {
-    print("loadImage: " + path);
+    print("loadImage: $path");
 
-    ByteData data = await rootBundle.load(path);
-    Uint8List bytes = data.buffer.asUint8List();
-    UI.Codec codec = await UI.instantiateImageCodec(bytes);
-    UI.FrameInfo frameInfo = await codec.getNextFrame();
+    try {
+      ByteData data = await rootBundle.load(path);
+      Uint8List bytes = data.buffer.asUint8List();
 
-    var scaledImage = await scaleImage(frameInfo.image, 30, 30);
+      // Load image at its original dimensions
+      UI.Codec codec = await UI.instantiateImageCodec(bytes);
+      UI.FrameInfo frameInfo = await codec.getNextFrame();
 
-    setState(() {
-      print("loadImage: setImageState");
-      _image = scaledImage;
-    });
+      if (mounted) {
+        setState(() {
+          print(
+              "loadImage: setImageState at ${frameInfo.image.width}x${frameInfo.image.height}");
+          _image = frameInfo.image;
+        });
+      }
+    } catch (e) {
+      print("Error loading image: $e");
+    }
   }
 
   /// This Function checks whether the bubbles in the screen have to be restarted due to

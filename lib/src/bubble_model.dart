@@ -57,40 +57,56 @@ class BubblePainter extends CustomPainter {
 
       if (shape == BubbleShape.circle)
         canvas.drawCircle(
-          position,
-          size.width * sizeFactor * particle.size,
-          paint,
-        );
+            position, size.width * sizeFactor * particle.size, paint);
       else if (shape == BubbleShape.square)
         canvas.drawRect(
-            Rect.fromCircle(
+          Rect.fromCircle(
               center: position,
-              radius: size.width * sizeFactor * particle.size,
-            ),
-            paint);
+              radius: size.width * sizeFactor * particle.size),
+          paint,
+        );
       else if (shape == BubbleShape.image) {
-        // get image from assets named bubble.png
         if (image == null) return;
 
-        canvas.drawImage(
-          image!,
-          Offset(
-            position.dx - size.width * sizeFactor * particle.size / 2,
-            position.dy - size.height * sizeFactor * particle.size / 2,
+        // Fixed size: all hearts render at exactly 30x30 pixels
+        const imageSize = 30.0;
+        final sourceRect = Rect.fromLTWH(
+            0, 0, image!.width.toDouble(), image!.height.toDouble());
+        final destRect = Rect.fromLTWH(
+          position.dx - imageSize / 2,
+          position.dy - imageSize / 2,
+          imageSize,
+          imageSize,
+        );
+
+        // Save layer for better compositing
+        canvas.save();
+
+        // Use high-quality paint settings for better image rendering
+        final imagePaint = Paint()
+          ..filterQuality = FilterQuality.high
+          ..isAntiAlias = true;
+
+        // Apply opacity if needed
+        if (opacity < 255) {
+          imagePaint.colorFilter = ColorFilter.mode(
+            Colors.white.withAlpha(opacity),
+            BlendMode.modulate,
+          );
+        }
+
+        canvas.drawImageRect(image!, sourceRect, destRect, imagePaint);
+        canvas.restore();
+      } else {
+        Rect rect() => Rect.fromCircle(
+            center: position, radius: size.width * sizeFactor * particle.size);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            rect(),
+            Radius.circular(size.width * sizeFactor * particle.size * 0.5),
           ),
           paint,
         );
-      } else {
-        Rect rect() => Rect.fromCircle(
-              center: position,
-              radius: size.width * sizeFactor * particle.size,
-            );
-        canvas.drawRRect(
-            RRect.fromRectAndRadius(
-              rect(),
-              Radius.circular(size.width * sizeFactor * particle.size * 0.5),
-            ),
-            paint);
       }
     });
   }
