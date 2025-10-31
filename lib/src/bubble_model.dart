@@ -57,40 +57,38 @@ class BubblePainter extends CustomPainter {
 
       if (shape == BubbleShape.circle)
         canvas.drawCircle(
-          position,
-          size.width * sizeFactor * particle.size,
-          paint,
-        );
+            position, size.width * sizeFactor * particle.size, paint);
       else if (shape == BubbleShape.square)
         canvas.drawRect(
-            Rect.fromCircle(
+          Rect.fromCircle(
               center: position,
-              radius: size.width * sizeFactor * particle.size,
-            ),
-            paint);
+              radius: size.width * sizeFactor * particle.size),
+          paint,
+        );
       else if (shape == BubbleShape.image) {
-        // get image from assets named bubble.png
         if (image == null) return;
 
-        canvas.drawImage(
-          image!,
-          Offset(
-            position.dx - size.width * sizeFactor * particle.size / 2,
-            position.dy - size.height * sizeFactor * particle.size / 2,
+        final imageSize = size.width * sizeFactor * particle.size;
+        final sourceRect = Rect.fromLTWH(
+            0, 0, image!.width.toDouble(), image!.height.toDouble());
+        final destRect = Rect.fromLTWH(
+          position.dx - imageSize / 2,
+          position.dy - imageSize / 2,
+          imageSize,
+          imageSize,
+        );
+
+        canvas.drawImageRect(image!, sourceRect, destRect, paint);
+      } else {
+        Rect rect() => Rect.fromCircle(
+            center: position, radius: size.width * sizeFactor * particle.size);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            rect(),
+            Radius.circular(size.width * sizeFactor * particle.size * 0.5),
           ),
           paint,
         );
-      } else {
-        Rect rect() => Rect.fromCircle(
-              center: position,
-              radius: size.width * sizeFactor * particle.size,
-            );
-        canvas.drawRRect(
-            RRect.fromRectAndRadius(
-              rect(),
-              Radius.circular(size.width * sizeFactor * particle.size * 0.5),
-            ),
-            paint);
       }
     });
   }
